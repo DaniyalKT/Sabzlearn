@@ -3,15 +3,72 @@ import "./Register.css";
 import Topbar from "../../Components/Topbar/Topbar";
 import Navbar from "../../Components/Navbar/Navbar";
 import Footer from "../../Components/Footer/Footer";
-import { Link } from "react-router-dom";
 import Input from "../../Components/Form/Input";
 import Button from "../../Components/Form/Button";
+import { useForm } from "../../hooks/useForm";
+import {
+  maxValidator,
+  minValidator,
+  passwordValidator,
+  requiredValidator,
+  emailValidator,
+  phoneNumberValidator
+} from "../../Validators/Rules";
 
 export default function Register() {
+  const [formState, onInputHandler] = useForm(
+    {
+      name: {
+        value: "",
+        isValid: false,
+      },
+      username: {
+        value: "",
+        isValid: false,
+      },
+      phone: {
+        value: "",
+        isValid: false,
+      },
+      email: {
+        value: "",
+        isValid: false,
+      },
+      password: {
+        value: "",
+        isValid: false,
+      }
+    },
+    false
+  );
+ 
+
+  console.log(formState)
+
   const registerNewUser = (event) => {
     event.preventDefault();
 
-    console.log("user registerd ");
+  
+    const newUserInfos = {
+      name: formState.inputs.name.value,
+      username:formState.inputs.username.value,
+      email: formState.inputs.email.value,
+      phone: formState.inputs.phone.value,
+      password:formState.inputs.password.value,
+      confirmPassword: formState.inputs.password.value
+    }
+
+    fetch("http://localhost:4000/v1/auth/register",{
+      method: 'POST',
+      headers: {
+        "Content-type" : 'application/json'  
+      },
+      body: JSON.stringify(newUserInfos)
+    }).then(res=> res.json())
+    .then(result => console.log(result))
+
+    console.log('registeing was success ! ')
+
   };
   return (
     <>
@@ -36,9 +93,16 @@ export default function Register() {
             <div className="login-form__username">
               <Input
                 element="input"
+                id="name"
                 type="text"
                 className="login-form__username-input"
                 placeholder="نام و نام خانوادگی "
+                onInputHandler={onInputHandler}
+                validations={[
+                  requiredValidator(),
+                  minValidator(6),
+                  maxValidator(30),
+                ]}
               />
               <i className="login-form__username-icon fa fa-user"></i>
             </div>
@@ -46,8 +110,15 @@ export default function Register() {
               <Input
                 element="input"
                 type="text"
+                id="username"
                 className="login-form__username-input"
                 placeholder="نام کاربری "
+                onInputHandler={onInputHandler}
+                validations={[
+                  requiredValidator(),
+                  minValidator(8),
+                  maxValidator(20),
+                ]}
               />
 
               <i className="login-form__username-icon fa fa-user"></i>
@@ -56,8 +127,16 @@ export default function Register() {
               <Input
                 element="input"
                 type="text"
+                id="phone"
                 className="login-form__username-input"
-                placeholder="شماره تماس "
+                placeholder="شماره تماس"
+                onInputHandler={onInputHandler}
+                validations={[
+                  requiredValidator(),
+                  minValidator(8),
+                  maxValidator(20),
+                  phoneNumberValidator()
+                ]}
               />
 
               <i className="login-form__username-icon fa fa-phone"></i>
@@ -66,8 +145,16 @@ export default function Register() {
               <Input
                 element="input"
                 type="text"
+                id="email"
                 className="login-form__password-input"
                 placeholder="آدرس ایمیل "
+                onInputHandler={onInputHandler}
+                validations={[
+                  requiredValidator(),
+                  minValidator(8),
+                  maxValidator(20),
+                  emailValidator()
+                ]}
               />
 
               <i className="login-form__password-icon fa fa-envelope"></i>
@@ -76,27 +163,46 @@ export default function Register() {
               <Input
                 element="input"
                 type="text"
+                id="password"
                 className="login-form__password-input"
                 placeholder=" رمز عبور "
+                onInputHandler={onInputHandler}
+                validations={[
+                  requiredValidator(),
+                  minValidator(8),
+                  maxValidator(20),
+                  passwordValidator()
+                ]}
               />
 
               <i className="login-form__password-icon fa fa-lock-open"></i>
             </div>
-            <div className="login-form__password">
+            {/* <div className="login-form__password">
               <Input
                 element="input"
                 type="text"
+                id="password"
                 className="login-form__password-input"
                 placeholder=" رمز عبور را دوباره وارد کنید "
+                onInputHandler={onInputHandler}
+                validations={[
+                  requiredValidator(),
+                  minValidator(8),
+                  maxValidator(20),
+                ]}
               />
 
               <i className="login-form__password-icon fa fa-lock-open"></i>
-            </div>
+            </div> */}
             <Button
               type="submit"
-              className="login-form__btn login-form__btn_success"
+              className={`login-form__btn ${
+                formState.isFormValid
+                  ? "login-form__btn-success"
+                  : "login-form__btn-error"
+              }`}
               onClick={registerNewUser}
-              disabled={false}
+              disabled={!formState.isFormValid}
             >
               <i className="login-form__btn-icon fa fa-user-plus"></i>
               <span className="login-form__btn-text">عضویت</span>
