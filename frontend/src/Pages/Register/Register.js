@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import "./Register.css";
 import Topbar from "../../Components/Topbar/Topbar";
 import Navbar from "../../Components/Navbar/Navbar";
@@ -12,10 +12,15 @@ import {
   passwordValidator,
   requiredValidator,
   emailValidator,
-  phoneNumberValidator
+  phoneNumberValidator,
 } from "../../Validators/Rules";
+import AuthContext from "../../context/authContext";
 
 export default function Register() {
+  const authContext = useContext(AuthContext);
+
+  console.log(authContext)
+
   const [formState, onInputHandler] = useForm(
     {
       name: {
@@ -37,38 +42,37 @@ export default function Register() {
       password: {
         value: "",
         isValid: false,
-      }
+      },
     },
     false
   );
- 
-
-  console.log(formState)
 
   const registerNewUser = (event) => {
     event.preventDefault();
 
-  
     const newUserInfos = {
       name: formState.inputs.name.value,
-      username:formState.inputs.username.value,
+      username: formState.inputs.username.value,
       email: formState.inputs.email.value,
       phone: formState.inputs.phone.value,
-      password:formState.inputs.password.value,
-      confirmPassword: formState.inputs.password.value
-    }
+      password: formState.inputs.password.value,
+      confirmPassword: formState.inputs.password.value,
+    };
 
-    fetch("http://localhost:4000/v1/auth/register",{
-      method: 'POST',
+    fetch("http://localhost:4000/v1/auth/register", {
+      method: "POST",
       headers: {
-        "Content-type" : 'application/json'  
+        "Content-type": "application/json",
       },
-      body: JSON.stringify(newUserInfos)
-    }).then(res=> res.json())
-    .then(result => console.log(result))
+      body: JSON.stringify(newUserInfos),
+    })
+      .then((res) => res.json())
+      .then((result) => {
+        console.log(result);
+        authContext.login(result.user, result.accessToken);
+      });
 
-    console.log('registeing was success ! ')
-
+    console.log("registeing was success ! ");
   };
   return (
     <>
@@ -131,12 +135,7 @@ export default function Register() {
                 className="login-form__username-input"
                 placeholder="شماره تماس"
                 onInputHandler={onInputHandler}
-                validations={[
-                  requiredValidator(),
-                  minValidator(8),
-                  maxValidator(20),
-                  phoneNumberValidator()
-                ]}
+                validations={[requiredValidator(), phoneNumberValidator()]}
               />
 
               <i className="login-form__username-icon fa fa-phone"></i>
@@ -149,12 +148,7 @@ export default function Register() {
                 className="login-form__password-input"
                 placeholder="آدرس ایمیل "
                 onInputHandler={onInputHandler}
-                validations={[
-                  requiredValidator(),
-                  minValidator(8),
-                  maxValidator(20),
-                  emailValidator()
-                ]}
+                validations={[requiredValidator(), emailValidator()]}
               />
 
               <i className="login-form__password-icon fa fa-envelope"></i>
@@ -170,8 +164,7 @@ export default function Register() {
                 validations={[
                   requiredValidator(),
                   minValidator(8),
-                  maxValidator(20),
-                  passwordValidator()
+                  passwordValidator(),
                 ]}
               />
 
