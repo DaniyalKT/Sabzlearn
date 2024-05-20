@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import "./Login.css";
 import Topbar from "../../Components/Topbar/Topbar";
 import Navbar from "../../Components/Navbar/Navbar";
@@ -12,8 +12,15 @@ import {
   requiredValidator,
 } from "../../Validators/Rules";
 import { useForm } from "../../hooks/useForm";
+import AuthContext from "../../context/authContext";
+import swal from "sweetalert";
+import { useNavigate } from "react-router-dom";
 
 function Login() {
+  const authContext = useContext(AuthContext);
+
+  const navigate = useNavigate();
+
   const [formState, onInputHandler] = useForm(
     {
       username: {
@@ -33,7 +40,48 @@ function Login() {
   const userLogin = (event) => {
     event.preventDefault();
 
-    console.log("user logedin");
+    const userData = {
+      identifier: formState.inputs.username.value,
+      password: formState.inputs.password.value,
+    };
+    
+    fetch("http://localhost:4000/v1/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(userData),
+    })
+      .then((res) => {
+        if (!res.ok) {
+          return res.text().then((text) => {
+            throw new Error(text);
+          });
+        } else {
+          return res.json();
+        }
+      })
+      .then((result) => {
+        swal({
+          title: "شما با موفقیت لاگین شدید",
+          icon: "success",
+          buttons: "ورود به پنل",
+        }).then((value) => {
+          navigate("/");
+        });
+
+        authContext.login({}, result.accessToken);
+      })
+      .catch((err) => {
+        console.log(err);
+        swal({
+          title: "همچین کاربری یافت نشد!",
+          icon: "error",
+          buttons: "تلاش دوباره",
+        });
+      });
+
+    console.log(userData);
   };
 
   const showPasswordHandler = (event) => {
@@ -82,7 +130,10 @@ function Login() {
                 className="login-form__password-input"
                 placeholder="رمز عبور"
                 element="input"
-                validations={[requiredValidator(), passwordValidator()]}
+                validations={[
+                  requiredValidator(),
+                  //passwordValidator()
+                ]}
                 onInputHandler={onInputHandler}
               />
               <Button
