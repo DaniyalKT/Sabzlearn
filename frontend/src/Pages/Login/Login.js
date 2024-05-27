@@ -15,12 +15,11 @@ import { useForm } from "../../hooks/useForm";
 import AuthContext from "../../context/authContext";
 import swal from "sweetalert";
 import { useNavigate } from "react-router-dom";
+import ReCAPTCHA from "react-google-recaptcha";
 
 function Login() {
   const authContext = useContext(AuthContext);
-
   const navigate = useNavigate();
-
   const [formState, onInputHandler] = useForm(
     {
       username: {
@@ -35,7 +34,7 @@ function Login() {
     false
   );
 
-  const [isShowPassword, setIsShowPassword] = useState(false);
+  const [isGoogleRecaptchaVerify, setIsGoogleRecaptchaVerify] = useState(false)
 
   const userLogin = (event) => {
     event.preventDefault();
@@ -44,7 +43,7 @@ function Login() {
       identifier: formState.inputs.username.value,
       password: formState.inputs.password.value,
     };
-    
+
     fetch("http://localhost:4000/v1/auth/login", {
       method: "POST",
       headers: {
@@ -80,14 +79,13 @@ function Login() {
           buttons: "تلاش دوباره",
         });
       });
-
-    console.log(userData);
   };
 
-  const showPasswordHandler = (event) => {
-    event.preventDefault();
-    setIsShowPassword((prevPass) => !prevPass);
-  };
+   const onChangeHandler = () => {
+       console.log('گوگل ریکپچا با موفقیت وریفای شد ')
+       setIsGoogleRecaptchaVerify(true) 
+   }
+
 
   return (
     <>
@@ -126,41 +124,31 @@ function Login() {
             <div className="login-form__password">
               <Input
                 id="password"
-                type={isShowPassword ? "text" : "password"}
+                type='password'
                 className="login-form__password-input"
                 placeholder="رمز عبور"
                 element="input"
-                validations={[
-                  requiredValidator(),
-                  //passwordValidator()
-                ]}
+                validations={[requiredValidator(), passwordValidator()]}
                 onInputHandler={onInputHandler}
               />
-              <Button
-                className="login-form__password-show-password"
-                type="submit"
-                disabled={!formState.isFormValid}
-                onClick={showPasswordHandler}
-              >
-                <i
-                  className={`login-form__password-icon ${
-                    isShowPassword ? "fa fa-eye" : "fa fa-eye-slash"
-                  }`}
-                  onClick={() => {
-                    setIsShowPassword((prevPass) => !prevPass);
-                  }}
-                ></i>
-              </Button>
+                <i className="login-form__password-icon fa fa-lock-open"></i>
+            </div>
+
+            <div className="login-form__password">
+              <ReCAPTCHA
+                sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"
+                onChange={onChangeHandler}
+              />
             </div>
 
             <Button
               className={`login-form__btn ${
-                formState.isFormValid
+                formState.isFormValid && isGoogleRecaptchaVerify
                   ? "login-form__btn-success"
                   : "login-form__btn-error"
               }`}
               type="submit"
-              disabled={!formState.isFormValid}
+              disabled={(!formState.isFormValid && !isGoogleRecaptchaVerify)}
               onClick={userLogin}
             >
               <i className="login-form__btn-icon fas fa-sign-out-alt"></i>

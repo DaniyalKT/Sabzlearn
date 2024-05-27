@@ -1,5 +1,4 @@
-import React, { useContext } from "react";
-import "./Register.css";
+import React, { useContext, useState } from "react";
 import Topbar from "../../Components/Topbar/Topbar";
 import Navbar from "../../Components/Navbar/Navbar";
 import Footer from "../../Components/Footer/Footer";
@@ -15,12 +14,16 @@ import {
   phoneNumberValidator,
 } from "../../Validators/Rules";
 import AuthContext from "../../context/authContext";
+import swal from "sweetalert";
+import { useNavigate } from "react-router-dom";
+import ReCAPTCHA from "react-google-recaptcha";
+
+import "./Register.css";
 
 export default function Register() {
   const authContext = useContext(AuthContext);
-
-  console.log(authContext)
-
+  const navigate = useNavigate();
+  const [isGoogleRecaptchaVerify, setIsGoogleRecaptchaVerify] =useState(false) 
   const [formState, onInputHandler] = useForm(
     {
       name: {
@@ -68,12 +71,25 @@ export default function Register() {
     })
       .then((res) => res.json())
       .then((result) => {
+        swal({
+          title: ` ${result.user.name} عزیز ثبت نام شما با موفقیت انجام شد` ,
+          icon: "success",
+          buttons: "ورود به سایت",
+        }).then((value) => {
+          navigate("/login");
+        });
         console.log(result);
         authContext.login(result.user, result.accessToken);
       });
-
-    console.log("registeing was success ! ");
   };
+
+   
+  const onChangeHandler = () => {
+    console.log('گوگل ریکپچا با موفقیت وریفای شد')
+    setIsGoogleRecaptchaVerify(true)
+  }
+
+
   return (
     <>
       <Topbar />
@@ -170,6 +186,9 @@ export default function Register() {
 
               <i className="login-form__password-icon fa fa-lock-open"></i>
             </div>
+            <div className="login-form__password">
+              <ReCAPTCHA sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI" onChange={onChangeHandler} />
+            </div>
             {/* <div className="login-form__password">
               <Input
                 element="input"
@@ -190,12 +209,12 @@ export default function Register() {
             <Button
               type="submit"
               className={`login-form__btn ${
-                formState.isFormValid
+                formState.isFormValid && isGoogleRecaptchaVerify
                   ? "login-form__btn-success"
                   : "login-form__btn-error"
               }`}
               onClick={registerNewUser}
-              disabled={!formState.isFormValid}
+              disabled={(!formState.isFormValid && !isGoogleRecaptchaVerify)}
             >
               <i className="login-form__btn-icon fa fa-user-plus"></i>
               <span className="login-form__btn-text">عضویت</span>
